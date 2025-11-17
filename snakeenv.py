@@ -34,7 +34,7 @@ TIMEOUT_STEPS = 1000
 # 4. He cambiado el batch size (32 -> 64)
 # 4. Nuevo modelo desde 0
 
-# 5. He cargado el modelo de v4 otra vez para entrenarlo. (8000 pasos - mejor resultado.)
+# 5. He cargado el modelo de v4 otra vez para entrenarlo. (Modelo cargado: 8000 pasos - mejor resultado.)
 
 # 6. Cambio de modelo a Double DQN + Dueling DQN
 # 6. Exploration fraction 0.90 y 2_000_000 de pasos | batch size a 128 y learning rate a 1e-3 | buffer size 200_000
