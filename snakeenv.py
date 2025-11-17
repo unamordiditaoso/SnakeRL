@@ -50,6 +50,9 @@ TIMEOUT_STEPS = 1000
 # 10. Mayor penalización por chocarse con su cuerpo. 0.75 --> 1.5
 # 10. Menor penalización por encerrarse. 4 --> 3
 
+# 11. Volver a datos de v10
+# 11. Añadir penalizaciones por chocarse con su propio cuerpo (20 de penalización) y por chocarse contra las paredes (5 de penalización)
+
 def collision_with_apple(apple_position, score):
     apple_position = [random.randrange(1,50)*10,random.randrange(1,50)*10]
     score += 1
@@ -157,7 +160,12 @@ class SnakeEnv(gym.Env):
             self.done = True
 
         # --- Colisiones ---
-        if collision_with_boundaries(self.snake_head) or collision_with_self(self.snake_position):
+        if collision_with_boundaries(self.snake_head):
+            self.reward -= 5
+            self.done = True
+
+        if collision_with_self(self.snake_position):
+            self.reward -= 20
             self.done = True
 
         # --- Distancia a la manzana ---
@@ -196,10 +204,10 @@ class SnakeEnv(gym.Env):
         if not danger_s:
             self.reward += 0.05
         else:
-            self.reward -= 1.5
+            self.reward -= 0.75
 
         if danger_s and danger_l and danger_r:
-            self.reward -= 3
+            self.reward -= 4
 
         # create observation:
 
