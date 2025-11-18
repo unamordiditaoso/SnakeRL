@@ -8,7 +8,7 @@ SEED = 42
 EVAL_FREQ = 10_000
 N_EVAL_EPISODES = 5
 REWARD_TARGET = 10000
-TOTAL_TIMESTEPS = 2000000
+TOTAL_TIMESTEPS = 4000000
 
 CHECKPOINT_DIR = "./checkpoints_snake/"
 TENSORBOARD_DIR = "./tensorboard_snake/"
@@ -81,13 +81,13 @@ else:
         seed=SEED,
         tensorboard_log=tensorboard_path,
 
-        learning_rate = 1e-3,          # Tasa de aprendizaje conservadora
-        buffer_size = 200000,          # Buffer grande para decorrelación
-        learning_starts = 10000,       # Esperar a tener experiencias variadas
+        learning_rate = 5e-5,          # Tasa de aprendizaje conservadora
+        buffer_size = 500000,          # Buffer grande para decorrelación
+        learning_starts = 50000,       # Esperar a tener experiencias variadas
         batch_size = 128,               # Batch estándar
         gamma = 0.99,                  # Factor de descuento (episodios largos)
         train_freq = 4,                # Entrenar cada 4 pasos
-        target_update_interval = 1000, # Actualizar target network cada 1000
+        target_update_interval = 5000, # Actualizar target network cada 1000
 
         exploration_fraction = 0.95,    # 20% del training explorando
         exploration_initial_eps = 1.0, # Comenzar con exploración total
