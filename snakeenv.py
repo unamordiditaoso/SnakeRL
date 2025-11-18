@@ -53,6 +53,33 @@ TIMEOUT_STEPS = 1000
 # 11. Volver a datos de v10
 # 11. Añadir penalizaciones por chocarse con su propio cuerpo (20 de penalización) y por chocarse contra las paredes (5 de penalización)
 
+# 12. Modificar penalización por chocarse con su propio cuerpo (20 -> 5).
+# 12. Modificar penalización por chocarse contra las paredes (5 -> 1).
+
+# 13. Modificar penalización por chocarse con su propio cuerpo (5 -> 1).
+# 13. Modificar penalización por chocarse contra las paredes (1 -> 0.25).
+
+# 14. Quitar penalización por chocarse con su propio cuerpo.
+# 14. Quitar penalización por chocarse contra las paredes.
+# 14. Añadir penalización por girar cuando había peligro hacia esa dirección (2 de penalización)
+
+# 15. Eliminar penalización por girar cuando había peligro hacia esa dirección tras probar bastantes numeros.
+# 15. Añadir recompensa por mantenerse lejos de su cola.
+
+# 16. Eliminar recompensa por mantenerse lejos de su cola.
+# 16. Modificar valores del agente:
+#       Timesteps: 2000000 -> 4000000
+#       Buffer_size: 20000 -> 50000
+#       Learning_starts: 10000 -> 50000
+#       Target_update_interval: 1000 -> 5000
+
+# 17. Modificar valores del agente:
+#       Learning_rate: 1e-3 -> 1e-5
+
+# 18. Modificar valores del agente:
+#       Learning_rate: 1e-5 -> 5e-5
+
+
 def collision_with_apple(apple_position, score):
     apple_position = [random.randrange(1,50)*10,random.randrange(1,50)*10]
     score += 1
