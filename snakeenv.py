@@ -91,6 +91,12 @@ TIMEOUT_STEPS = 1000
 
 # 22. Coger modelo v8 poner 4000000 de pasos aprendiendo y 500000 usando todo lo que sabe (Probar con exploration_rate de 0.90 a 0.20 y luego 500000 en 0.01 para futuros intentos).
 
+# 23. Cambio en la apple_reward (50 * 2 -> 40 * 2)
+
+# 24. Cambio en la apple_reward (30 * 2 -> 30 * 1.5)
+
+# 25. Cambio en la apple_reward (30 * 1.5 -> 50 * 1.5)
+
 def collision_with_apple(apple_position, score):
     apple_position = [random.randrange(1,50)*10,random.randrange(1,50)*10]
     score += 1
@@ -148,22 +154,22 @@ class SnakeEnv(gym.Env):
 #        cv2.imshow('a',self.img)
 #        cv2.waitKey(1)
 
-#        # Descomentar para usar el script snakeplay.py
-#        self.img = np.zeros((500,500,3),dtype='uint8')
-#        # Display Apple
-#        cv2.rectangle(self.img,(self.apple_position[0],self.apple_position[1]),(self.apple_position[0]+10,self.apple_position[1]+10),(0,0,255),3)
-#        # Display Snake
-#        for position in self.snake_position:
-#            cv2.rectangle(self.img,(position[0],position[1]),(position[0]+10,position[1]+10),(0,255,0),3)
-#        
-#        # Takes step after fixed time
-#        t_end = time.time() + 0.05
-#        k = -1
-#        while time.time() < t_end:
-#            if k == -1:
-#                k = cv2.waitKey(1)
-#            else:
-#                continue
+        # Descomentar para usar el script snakeplay.py
+        self.img = np.zeros((500,500,3),dtype='uint8')
+        # Display Apple
+        cv2.rectangle(self.img,(self.apple_position[0],self.apple_position[1]),(self.apple_position[0]+10,self.apple_position[1]+10),(0,0,255),3)
+        # Display Snake
+        for position in self.snake_position:
+            cv2.rectangle(self.img,(position[0],position[1]),(position[0]+10,position[1]+10),(0,255,0),3)
+        
+        # Takes step after fixed time
+        t_end = time.time() + 0.05
+        k = -1
+        while time.time() < t_end:
+            if k == -1:
+                k = cv2.waitKey(1)
+            else:
+                continue
 
         button_direction = action
 
@@ -185,7 +191,7 @@ class SnakeEnv(gym.Env):
         if self.snake_head == self.apple_position:
             self.apple_position, self.score = collision_with_apple(self.apple_position, self.score)
             self.snake_position.insert(0, list(self.snake_head))
-            apple_reward = 50 + self.score * 2  # incrementa con cada manzana
+            apple_reward = 50 + self.score * 1.5  # incrementa con cada manzana
             self.steps_since_apple = 0
         else:
             self.snake_position.insert(0, list(self.snake_head))
@@ -211,8 +217,8 @@ class SnakeEnv(gym.Env):
         distance_improvement = distance_prev - distance_now  # positivo si se acerca
 
         self.reward = ( apple_reward 
-                        + 0.35 * distance_improvement # Cambio de 0.5 a 0.35 (v22)
-                        - 0.0005 * self.steps_since_apple ) # Cambio de 0.001 a 0.0005 (v22)
+                        + 0.5 * distance_improvement # Cambio de 0.5 a 0.35 (v22)
+                        - 0.001 * self.steps_since_apple ) # Cambio de 0.001 a 0.0005 (v22)
         if self.done: 
             dist_to_apple = np.linalg.norm(np.array(self.snake_head) - np.array(self.apple_position)) 
             max_dist = np.sqrt(500**2 + 500**2) 

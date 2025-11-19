@@ -81,7 +81,7 @@ else:
         seed=SEED,
         tensorboard_log=tensorboard_path,
 
-        learning_rate = 5e-3,          # Tasa de aprendizaje conservadora
+        learning_rate = 1e-3,          # Tasa de aprendizaje conservadora
         buffer_size = 500000,          # Buffer grande para decorrelación
         learning_starts = 50000,       # Esperar a tener experiencias variadas
         batch_size = 128,               # Batch estándar

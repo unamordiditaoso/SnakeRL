@@ -7,7 +7,7 @@ from stable_baselines3 import DQN
 from snakeenv import SnakeEnv
 
 
-MODEL_PATH = "./checkpoints_snake/v20/dqn_snake_v20_3800000_steps.zip"   # ← CAMBIA AQUÍ TU MODELO
+MODEL_PATH = "./checkpoints_snake/v22/dqn_snake_v22_3700000_steps.zip"   # ← CAMBIA AQUÍ TU MODELO
 
 
 def play(model_path, episodes=5):
