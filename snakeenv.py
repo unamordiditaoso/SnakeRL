@@ -79,6 +79,15 @@ TIMEOUT_STEPS = 1000
 # 18. Modificar valores del agente:
 #       Learning_rate: 1e-5 -> 5e-5
 
+# 19. Modificar valores del agente:
+#       Learning_rate: 5e-5 -> 5e-3
+
+# 20. V16
+# 20. Modificar todas las recompensas //Posible cambio en apple_reward
+# 20. Entrenar 500000 pasos mas con el exploration_rate al minimo
+# 20. Añadir un contador con el numero de veces que se llega a la meta de 30 de largo.
+
+# 21. Cambios en la recompensas porque la serpiente preferia ir recto todo el rato que ir a por la manzana (por la recompensa de danger).
 
 def collision_with_apple(apple_position, score):
     apple_position = [random.randrange(1,50)*10,random.randrange(1,50)*10]
@@ -111,6 +120,7 @@ class SnakeEnv(gym.Env):
                                             shape=(8+SNAKE_LEN_GOAL,), dtype=np.float64)
         self.truncated = False
         self.steps_since_apple = 0
+        self.goal_reached = 0
 
     def danger(self, direction):
         next_head = list(self.snake_head)
@@ -182,7 +192,6 @@ class SnakeEnv(gym.Env):
 
         # --- Timeout ---
         if self.steps_since_apple >= TIMEOUT_STEPS:
-            print(self.steps_since_apple)
             self.truncated = True
             self.done = True
 
@@ -199,21 +208,24 @@ class SnakeEnv(gym.Env):
         distance_now = np.linalg.norm(np.array(self.snake_head) - np.array(self.apple_position))
         distance_improvement = distance_prev - distance_now  # positivo si se acerca
 
-        # --- Recompensa total ---
-        #  +10 al comer, + (mejor si se acerca), - (si se aleja), - (por morir o timeout)
-        self.reward = (
-            apple_reward
-            + 0.5 * distance_improvement   # más peso a acercarse
-            - 0.001 * self.steps_since_apple
-        )
+        # --- Recompensa por comer manzana ---
+        self.reward = apple_reward  # Esto es lo más importante
 
+        # --- Acercarse a la manzana: MUCHO mejor si lo reducimos ---
+        self.reward += 0.5 * distance_improvement   # antes 0.5 (25x menor) -- V21 Volver a 0.5
+
+        # --- Penalización por tardar demasiado, pero mínima ---
+        self.reward -= 0.0001 * self.steps_since_apple   # antes 0.001 (10x menor)
+
+        # --- Penalización por morir ---
         if self.done:
             dist_to_apple = np.linalg.norm(np.array(self.snake_head) - np.array(self.apple_position))
             max_dist = np.sqrt(500**2 + 500**2)
             proximity_factor = dist_to_apple / max_dist
-            self.reward -= 5 + 10 * proximity_factor
-        
-        ##print(self.total_reward)
+            self.reward -= 2 + 3 * proximity_factor   # antes 5 + 10 (3x menor)
+
+            if self.score >= SNAKE_LEN_GOAL:
+                self.goal_reached += 1
 
         info = {}
 
@@ -229,12 +241,12 @@ class SnakeEnv(gym.Env):
         danger_r = self.danger((self.button_direction + 1) % 4)
 
         if not danger_s:
-            self.reward += 0.05
+            self.reward += 0.025 # A la mitad (V21)
         else:
-            self.reward -= 0.75
+            self.reward -= 0.40 # De 0.75 a 0.40 (V21)
 
         if danger_s and danger_l and danger_r:
-            self.reward -= 4
+            self.reward -= 1.5 # De 4 a 1.5 (V21)
 
         # create observation:
 

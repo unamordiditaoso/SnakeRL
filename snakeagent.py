@@ -81,7 +81,7 @@ else:
         seed=SEED,
         tensorboard_log=tensorboard_path,
 
-        learning_rate = 5e-5,          # Tasa de aprendizaje conservadora
+        learning_rate = 5e-3,          # Tasa de aprendizaje conservadora
         buffer_size = 500000,          # Buffer grande para decorrelación
         learning_starts = 50000,       # Esperar a tener experiencias variadas
         batch_size = 128,               # Batch estándar
@@ -91,7 +91,7 @@ else:
 
         exploration_fraction = 0.95,    # 20% del training explorando
         exploration_initial_eps = 1.0, # Comenzar con exploración total
-        exploration_final_eps = 0.01,  # Terminar con 1% de exploración
+        exploration_final_eps = 0.001,  # Terminar con 1% de exploración
     )
 
 model.learn(
@@ -100,9 +100,17 @@ model.learn(
     tb_log_name="DQN_Snake_Run",
 )
 
+model.learn(
+    total_timesteps=500000,
+    tb_log_name="DQN_Snake_Run",
+    reset_num_timesteps=False
+)
+
 mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=20, deterministic=True)
 print(f"[Snake · DQN] Recompensa media={mean_reward:.1f} ± {std_reward:.1f} (20 episodios)")
 
+meta_conseguida = env.goal_reached
 
 print("\n✅ Entrenamiento completado.")
+print(f"\n🏁 Meta conseguida: {meta_conseguida} veces.")
 print(f"   TensorBoard -> tensorboard --logdir={TENSORBOARD_DIR}")
