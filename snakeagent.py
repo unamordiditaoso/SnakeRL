@@ -2,13 +2,13 @@ import os
 from snakeenv import SnakeEnv
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold, CheckpointCallback, BaseCallback
-from stable_baselines3 import DQN
+from stable_baselines3 import DQN, PPO, A2C
 
 SEED = 42
 EVAL_FREQ = 10_000
 N_EVAL_EPISODES = 5
 REWARD_TARGET = 10000
-TOTAL_TIMESTEPS = 4000000
+TOTAL_TIMESTEPS = 2000000
 
 CHECKPOINT_DIR = "./checkpoints_snake/"
 TENSORBOARD_DIR = "./tensorboard_snake/"
@@ -53,7 +53,7 @@ eval_callback = EvalCallback(
 checkpoint_callback = CheckpointCallback(
     save_freq=100_000,               # cada 100.000 pasos
     save_path=checkpoint_path,      # carpeta donde se guardarán
-    name_prefix=f"dqn_snake_{version_tag}", # prefijo del nombre del archivo
+    name_prefix=f"a2c_snake_{version_tag}", # prefijo del nombre del archivo
     save_replay_buffer=True,        # (opcional) guarda también el buffer de replay
     save_vecnormalize=False,        # no usas VecNormalize, así que False
 )
@@ -74,40 +74,59 @@ if os.path.exists(MODEL_PATH):
     print(f"📦 Cargando modelo existente desde {MODEL_PATH}...")
     model = DQN.load(MODEL_PATH, env=env, seed=SEED, tensorboard_log=tensorboard_path)
 else:
-    model = DQN(
+#    model = PPO(
+#    policy="MlpPolicy",
+#    env=env,
+#    verbose=1,
+#    seed=SEED,
+#    tensorboard_log=tensorboard_path,
+
+#    learning_rate=1e-4,         # Más bajo que en DQN; PPO suele usar LR pequeños
+#    n_steps=4096,               # Tamaño del batch de rollout (equivale al buffer)
+#    batch_size=128,             # Igual que DQN para consistencia
+#    n_epochs=10,                # Veces que pasa por cada batch
+
+#    gamma=0.99,                 # Mismo descuento
+#    gae_lambda=0.95,            # Valores típicos de PPO (bias/variance trade-off)
+
+#    clip_range=0.2,             # Clip estándar
+#    ent_coef=0.001,             # Entropía: actúa como “exploración”
+#)
+    model = A2C(
         policy="MlpPolicy",
         env=env,
         verbose=1,
         seed=SEED,
         tensorboard_log=tensorboard_path,
 
-        learning_rate = 1e-3,          # Tasa de aprendizaje conservadora
-        buffer_size = 500000,          # Buffer grande para decorrelación
-        learning_starts = 50000,       # Esperar a tener experiencias variadas
-        batch_size = 128,               # Batch estándar
-        gamma = 0.99,                  # Factor de descuento (episodios largos)
-        train_freq = 4,                # Entrenar cada 4 pasos
-        target_update_interval = 5000, # Actualizar target network cada 1000
+        # --- Hiperparámetros principales ---
+        learning_rate = 1e-4,      # Similar a PPO; A2C es sensible a LR altos
+        n_steps = 5_000,           # "Batch" de experiencia antes de actualizar
+        gamma = 0.99,              # Igual que en DQN
+        gae_lambda = 0.95,         # Ayuda a estabilizar (igual que PPO)
 
-        exploration_fraction = 0.95,    # 20% del training explorando
-        exploration_initial_eps = 1.0, # Comenzar con exploración total
-        exploration_final_eps = 0.001,  # Terminar con 1% de exploración
+        ent_coef = 0.001,          # Controla la exploración
+        vf_coef = 0.5,             # Peso de la loss de valor
+        max_grad_norm = 0.5,       # Clipping de gradiente
+    
+        rms_prop_eps = 1e-5,       # Default recomendado
+        use_rms_prop = True,       # A2C funciona mejor con RMSprop
     )
-
+    
 model.learn(
     total_timesteps=TOTAL_TIMESTEPS,
     callback=[eval_callback, checkpoint_callback, CustomTensorboardCallback()],
-    tb_log_name="DQN_Snake_Run",
+    tb_log_name="A2C_Snake_Run",
 )
 
 model.learn(
     total_timesteps=500000,
-    tb_log_name="DQN_Snake_Run",
+    tb_log_name="A2C_Snake_Run",
     reset_num_timesteps=False
 )
 
 mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=20, deterministic=True)
-print(f"[Snake · DQN] Recompensa media={mean_reward:.1f} ± {std_reward:.1f} (20 episodios)")
+print(f"[Snake · A2C] Recompensa media={mean_reward:.1f} ± {std_reward:.1f} (20 episodios)")
 
 meta_conseguida = env.goal_reached
 

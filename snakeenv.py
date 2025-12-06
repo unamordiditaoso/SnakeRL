@@ -128,7 +128,6 @@ class SnakeEnv(gym.Env):
                                             shape=(8+SNAKE_LEN_GOAL,), dtype=np.float64)
         self.truncated = False
         self.steps_since_apple = 0
-        self.goal_reached = 0
 
     def danger(self, direction):
         next_head = list(self.snake_head)
@@ -154,22 +153,22 @@ class SnakeEnv(gym.Env):
 #        cv2.imshow('a',self.img)
 #        cv2.waitKey(1)
 
-        # Descomentar para usar el script snakeplay.py
-        self.img = np.zeros((500,500,3),dtype='uint8')
-        # Display Apple
-        cv2.rectangle(self.img,(self.apple_position[0],self.apple_position[1]),(self.apple_position[0]+10,self.apple_position[1]+10),(0,0,255),3)
-        # Display Snake
-        for position in self.snake_position:
-            cv2.rectangle(self.img,(position[0],position[1]),(position[0]+10,position[1]+10),(0,255,0),3)
-        
-        # Takes step after fixed time
-        t_end = time.time() + 0.05
-        k = -1
-        while time.time() < t_end:
-            if k == -1:
-                k = cv2.waitKey(1)
-            else:
-                continue
+#        # Descomentar para usar el script snakeplay.py
+#        self.img = np.zeros((500,500,3),dtype='uint8')
+#        # Display Apple
+#        cv2.rectangle(self.img,(self.apple_position[0],self.apple_position[1]),(self.apple_position[0]+10,self.apple_position[1]+10),(0,0,255),3)
+#        # Display Snake
+#        for position in self.snake_position:
+#            cv2.rectangle(self.img,(position[0],position[1]),(position[0]+10,position[1]+10),(0,255,0),3)
+#        
+#        # Takes step after fixed time
+#        t_end = time.time() + 0.05
+#        k = -1
+#        while time.time() < t_end:
+#            if k == -1:
+#                k = cv2.waitKey(1)
+#            else:
+#                continue
 
         button_direction = action
 
@@ -191,7 +190,7 @@ class SnakeEnv(gym.Env):
         if self.snake_head == self.apple_position:
             self.apple_position, self.score = collision_with_apple(self.apple_position, self.score)
             self.snake_position.insert(0, list(self.snake_head))
-            apple_reward = 50 + self.score * 1.5  # incrementa con cada manzana
+            apple_reward = 50 + self.score * 2  # incrementa con cada manzana
             self.steps_since_apple = 0
         else:
             self.snake_position.insert(0, list(self.snake_head))
@@ -200,50 +199,54 @@ class SnakeEnv(gym.Env):
 
         # --- Timeout ---
         if self.steps_since_apple >= TIMEOUT_STEPS:
+            print(self.steps_since_apple)
             self.truncated = True
             self.done = True
 
         # --- Colisiones ---
-        if collision_with_boundaries(self.snake_head):
-            self.reward -= 5
-            self.done = True
-
-        if collision_with_self(self.snake_position):
-            self.reward -= 20
+        if collision_with_boundaries(self.snake_head) or collision_with_self(self.snake_position):
             self.done = True
 
         # --- Distancia a la manzana ---
         distance_now = np.linalg.norm(np.array(self.snake_head) - np.array(self.apple_position))
         distance_improvement = distance_prev - distance_now  # positivo si se acerca
 
-        self.reward = ( apple_reward 
-                        + 0.5 * distance_improvement # Cambio de 0.5 a 0.35 (v22)
-                        - 0.001 * self.steps_since_apple ) # Cambio de 0.001 a 0.0005 (v22)
-        if self.done: 
-            dist_to_apple = np.linalg.norm(np.array(self.snake_head) - np.array(self.apple_position)) 
-            max_dist = np.sqrt(500**2 + 500**2) 
-            proximity_factor = dist_to_apple / max_dist 
-            self.reward -= 5 + 10 * proximity_factor 
+        # --- Recompensa total ---
+        #  +10 al comer, + (mejor si se acerca), - (si se aleja), - (por morir o timeout)
+        self.reward = (
+            apple_reward
+            + 0.5 * distance_improvement   # más peso a acercarse
+            - 0.001 * self.steps_since_apple
+        )
+
+        if self.done:
+            dist_to_apple = np.linalg.norm(np.array(self.snake_head) - np.array(self.apple_position))
+            max_dist = np.sqrt(500**2 + 500**2)
+            proximity_factor = dist_to_apple / max_dist
+            self.reward -= 5 + 10 * proximity_factor
         
-        info = {} 
-        head_x = self.snake_head[0] 
-        head_y = self.snake_head[1] 
-        
-        snake_length = len(self.snake_position) 
-        apple_delta_x = self.apple_position[0] - head_x 
-        apple_delta_y = self.apple_position[1] - head_y 
-        
-        danger_s = self.danger(self.button_direction) 
-        danger_l = self.danger((self.button_direction - 1) % 4) 
-        danger_r = self.danger((self.button_direction + 1) % 4) 
-        
-        if not danger_s: 
-            self.reward += 0.05 
-        else: 
-            self.reward -= 0.75 
-        
-        if danger_s and danger_l and danger_r: 
-            self.reward -= 4
+        ##print(self.total_reward)
+
+        info = {}
+
+        head_x = self.snake_head[0]
+        head_y = self.snake_head[1]
+
+        snake_length = len(self.snake_position)
+        apple_delta_x = self.apple_position[0] - head_x
+        apple_delta_y = self.apple_position[1] - head_y
+
+        danger_s = self.danger(self.button_direction)
+        danger_l = self.danger((self.button_direction - 1) % 4)
+        danger_r = self.danger((self.button_direction + 1) % 4)
+
+        if not danger_s:
+            self.reward += 0.05
+        else:
+            self.reward -= 1.5
+
+        if danger_s and danger_l and danger_r:
+            self.reward -= 3
 
         # create observation:
 
