@@ -1,0 +1,16 @@
+- Comandos pip install para ejecutar snakeagent.py:
+1. pip install stable_baselines3
+2. pip install opencv-python
+3. pip install tensorboard
+
+- Comando para ejecutar agente:
+1. python .\snakeagent.py
+
+- Comando para ejecutar tensorboard:
+1. python -m tensorboard.main --logdir=./tensorboard_snake/
+
+- Que hacer para ver modelo (Ruta del mejor modelo ya añadida a snakeplay.py):
+1. Poner la ruta del modelo zip en el archivo snakeplay.py en la variable MODEL_PATH.
+2. Quitar comentarios del snakeplay.py de la línea 32 a la 36.
+3. Quitar comentarios del snakeenv.py de la línea 69 a la línea 84.
+4. Ejecutar programa snakeplay.py
